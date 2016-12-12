@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.provider.Settings;
 import android.support.v7.app.AppCompatActivity;
 import android.telephony.TelephonyManager;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -31,7 +32,6 @@ public class MainActivity extends AppCompatActivity {
 
     private VideoEnabledWebView webView;
     private VideoEnabledWebChromeClient webChromeClient;
-    private ArrayList<JSONObject> list;
 
 
     @Override
@@ -41,10 +41,10 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         //get device imei number......
         String deviceId = getDeviceId();
-        list = readJsonFile();
+        ArrayList<JSONObject> list = readJsonFile();
         // Save the web view
         webView = (VideoEnabledWebView)findViewById(R.id.webView);
-        if(isValidDevice(deviceId)){
+        if(isValidDevice(deviceId, list)){
             View nonVideoLayout = findViewById(R.id.nonVideoLayout);
             ViewGroup videoLayout = (ViewGroup)findViewById(R.id.videoLayout);
             View loadingView = getLayoutInflater().inflate(R.layout.view_loading_video, null);
@@ -181,7 +181,9 @@ public class MainActivity extends AppCompatActivity {
         return list;
     }
 
-    private boolean isValidDevice(String deviceId){
+    private boolean isValidDevice(String deviceId, ArrayList<JSONObject> list){
+        /*Log.d("isValidDevice-->",deviceId);
+        Log.d("List.....", list.toString());*/
         boolean isValid = false;
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd-MM-yyyy");
         Date currentDate = new Date();
@@ -191,7 +193,7 @@ public class MainActivity extends AppCompatActivity {
                 Date expiryDate = simpleDateFormat.parse(list.get(i).getString("expiryDate"));
                 if(imeiNumber.equals(deviceId) && list.get(i).getString("expiryDate").equals("")){
                     isValid = true;
-                }else if(expiryDate.after(currentDate) || expiryDate.compareTo(currentDate) == 0){
+                }else if(imeiNumber.equals(deviceId) && (expiryDate.after(currentDate) || expiryDate.compareTo(currentDate) == 0)){
                     isValid = true;
                 }
             }
