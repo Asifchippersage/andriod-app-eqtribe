@@ -186,14 +186,16 @@ public class MainActivity extends AppCompatActivity {
         Log.d("List.....", list.toString());*/
         boolean isValid = false;
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd-MM-yyyy");
-        Date currentDate = new Date();
         try {
+            Date currentDate = simpleDateFormat.parse(simpleDateFormat.format(new Date()));
             for(int i = 0; i < list.size(); i++){
                 String imeiNumber = list.get(i).getString("imei");
                 Date expiryDate = simpleDateFormat.parse(list.get(i).getString("expiryDate"));
                 if(imeiNumber.equals(deviceId) && list.get(i).getString("expiryDate").equals("")){
                     isValid = true;
-                }else if(imeiNumber.equals(deviceId) && (expiryDate.after(currentDate) || expiryDate.compareTo(currentDate) == 0)){
+                }else if(imeiNumber.equals(deviceId) && expiryDate.equals(currentDate)){
+                    isValid = true;
+                } else if(imeiNumber.equals(deviceId) && expiryDate.after(currentDate)){
                     isValid = true;
                 }
             }

@@ -5,10 +5,16 @@ import android.app.Activity;
 import com.couchbase.lite.CouchbaseLiteException;
 import com.couchbase.lite.Database;
 import com.couchbase.lite.DatabaseOptions;
+import com.couchbase.lite.Document;
 import com.couchbase.lite.Manager;
 import com.couchbase.lite.android.AndroidContext;
 import com.couchbase.lite.replicator.Replication;
 import com.couchbase.lite.util.Log;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import eqtribe.chippersage.util.StringUtil;
 
 import static com.couchbase.lite.auth.AESSecureTokenStore.TAG;
 
@@ -70,7 +76,7 @@ public class Application extends android.app.Application implements Replication.
         this.mDatabase = database;
     }
 
-    /*private Database getUserDatabase(String name) {
+    private Database getUserDatabase(String name) {
         try {
             String dbName = "db" + StringUtil.MD5(name);
             DatabaseOptions options = new DatabaseOptions();
@@ -82,12 +88,41 @@ public class Application extends android.app.Application implements Replication.
             Log.e(TAG, "Cannot create database for name: " + name, e);
         }
         return null;
-    }*/
-
-
+    }
 
     @Override
     public void changed(Replication.ChangeEvent event) {
 
+    }
+
+    public void registerNewUser(Activity activity, String userName, String password, String name){
+        setCurrentUserId(userName);
+        setDatabase(getUserDatabase(userName));
+        String profileDocID = "p:" + userName;
+        Document profile = mDatabase.getExistingDocument(profileDocID);
+        if (profile == null) {
+            try {
+                Map<String, Object> properties = new HashMap<String, Object>();
+                properties.put("type", "profile");
+                properties.put("user_name", userName);
+                properties.put("name", name);
+
+                profile = mDatabase.getDocument(profileDocID);
+                profile.putProperties(properties);
+
+                // Migrate guest data to user:
+                //UserProfile.migrateGuestData(getUserDatabase(GUEST_DATABASE_NAME), profile);
+            } catch (CouchbaseLiteException e) {
+                Log.e(TAG, "Cannot create a new user profile", e);
+            }
+        }
+    }
+
+    private void setCurrentUserId(String userId) {
+        this.mCurrentUserId = userId;
+    }
+
+    public String getCurrentUserId() {
+        return this.mCurrentUserId;
     }
 }
